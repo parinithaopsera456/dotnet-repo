@@ -1,12 +1,16 @@
-FROM --platform=linux/amd64 busybox as prep
+# Stage 1: Prepare files
+FROM --platform=linux/amd64 busybox AS prep
+RUN mkdir /folder && \
+    touch /folder/etc-passwd
 
-RUN mkdir /folder &&\
-    touch /etc-passwd
-COPY --from=prep /folder /workspace
-COPY --from=prep /etc-passwd /etc/passwd
-
+# Stage 2: Copy files and build final image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
 WORKDIR /app
+
+# Copy the files created in the prep stage
+COPY --from=prep /folder/etc-passwd /etc/passwd
+COPY --from=prep /folder /workspace
+
 EXPOSE 8080
 EXPOSE 8081
 
