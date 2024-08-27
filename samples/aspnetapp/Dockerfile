@@ -6,7 +6,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 # Build stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-ltsc2022
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["dotnet-repo.csproj", "."]
