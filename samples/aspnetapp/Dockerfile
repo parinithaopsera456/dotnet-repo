@@ -1,22 +1,26 @@
-# Learn about building .NET container images:
-# https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG TARGETARCH
-WORKDIR /source
-
-# copy csproj and restore as distinct layers
-COPY aspnetapp/*.csproj .
-RUN dotnet restore -a $TARGETARCH
-
-# copy and publish app and libraries
-COPY aspnetapp/. .
-RUN dotnet publish -a $TARGETARCH --no-restore -o /app
-
-
-# final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-EXPOSE 8080
+# Base image for the application runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
 WORKDIR /app
-COPY --from=build /app .
-USER $APP_UID
-ENTRYPOINT ["./aspnetapp"]
+EXPOSE 8080
+EXPOSE 8081
+
+# Build stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["dotnet-repo.csproj", "."]
+RUN dotnet restore "./dotnet-repo.csproj"
+COPY . .
+WORKDIR "/src/."
+RUN dotnet build "./dotnet-repo.csproj" -c ${BUILD_CONFIGURATION} -o /app/build
+
+# Publish stage
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./dotnet-repo.csproj" -c ${BUILD_CONFIGURATION} -o /app/publish /p:UseAppHost=false
+
+# Final image with application files
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "dotnet-repo.dll"]
