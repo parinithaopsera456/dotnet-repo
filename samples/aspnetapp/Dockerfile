@@ -1,5 +1,6 @@
 # Base image for the application runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
+# FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-ltsc2022
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
